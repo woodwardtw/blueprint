@@ -255,11 +255,9 @@ document.getElementById("discardButton").addEventListener("click", function(){
 
 document.getElementById("submitContent").addEventListener("click", function(){
   //let words = jQuery('#bodyText').val()
-  if(tinyMCE){
     let words = tinyMCE.activeEditor.getContent({format : 'raw'});
     let node = document.getElementById('bodyText').getAttribute('data-node')
     document.getElementById(node).getElementsByClassName('description')[0].innerHTML = words
-  }
   modifyTextJson(nodes, node, words)
   jQuery('.editOverlay').css('height','0')
        jsPlumb.repaintEverything()
