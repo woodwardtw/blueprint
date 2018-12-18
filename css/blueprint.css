@@ -2,12 +2,12 @@
 
 #the-blueprint {
   font-family: 'Libre Franklin', sans-serif;
-  margin:0;
+  /*margin:-215px 0 0 0;*/
   padding: 0;
+  display: block;
 }
 
 #the-blueprint .top-menu {
-  position: fixed;
   height: 50px;
   background-color: rgba(255,255,255,.9);
   margin:0;
@@ -150,13 +150,13 @@
   float:right;
 }
 
-#the-blueprint button{
+#discardButton, #submitContent{
   padding: 10px;
   font-size: 1.2em;
   transition: all 0.3s; 
 }
 
-#the-blueprint button:hover {
+#the-blueprint #submitContent:hover {
   background-color: green;
 }
 
@@ -185,9 +185,13 @@
 }
 
 textarea#json-data {
-  /*display: none;*/
-  width: 100%;
-  height: 200px;
+  display: none;
+  /*width: 100%;
+  height: 200px;*/
+}
+
+#jsplumb-id {
+  display: none;
 }
 
 #the-blueprint #textEditor {

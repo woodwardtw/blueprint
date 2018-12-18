@@ -1,17 +1,17 @@
 <?php
 /**
- * JSPlumb display template.
+ * The template for displaying all single blueprint posts
  *
- * 
+ * @link https://developer.wordpress.org/themes/basics/template-hierarchy/#single-post
  *
- * @author 		Tom Woodward
- * @package 	
- * @version     1.0.0
+ * @package ThemeGrill
+ * @subpackage Suffice
+ * @since Suffice 1.0.0
  */
 
-if ( ! defined( 'ABSPATH' ) ) exit; // Don't allow direct access
-
-?>
+get_header(); ?>
+</div>
+</div>
 <div id="the-blueprint">  
   <div class="top-menu">
     <button id="make">new item</button>
@@ -30,7 +30,16 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Don't allow direct access
   <div class="editOverlay">  	 
     <div id="textEditor">
         <!-- <textarea type="text" id="bodyText"></textarea><br>    -->
-        <?php wp_editor('', 'bodyText'); ?>
+        <?php 
+        if ( is_user_logged_in() ) {
+		            wp_editor('', 'bodyText'); 
+		} else {
+			echo '<h2>Please log in</h2>';
+		    wp_login_form();
+		}
+
+
+        ?>
         <div class="text-buttons">
           <button id="discardButton">Discard</button>   
           <button id="submitContent" type="submit" value="Submit">Submit</button>
@@ -40,3 +49,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Don't allow direct access
 </div>
 
 <div id="jsplumb-id"><?php echo the_ID();?></div>
+<?php echo addJsonContent();?>
+
+<?php get_sidebar(); ?>
+<?php get_footer(); ?>

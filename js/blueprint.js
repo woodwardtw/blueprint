@@ -1,4 +1,5 @@
 jsPlumb.ready(function() {
+  removeMasthead()
   jsPlumb.setContainer(document.getElementById("diagramContainer"));
 
   var common = {
@@ -42,6 +43,7 @@ jsPlumb.ready(function() {
           positionY: elem.positionY,
           text: elem.text
         }
+        expandContainer(elem.positionX) //make sure it all fits in the space
        jsPlumb.repaintEverything()
       })
 
@@ -58,11 +60,7 @@ function addNode(id, text) {
        jsPlumb.draggable(jQuery(".item"), {
           grid: [10,10],
           containment:false,
-          drag: function (event){
-             //console.log(event.pos[0]); // for left position
-             //console.log(event.pos[1]); // for top position   
-             console.log(id)
-             console.log(nodes)
+          drag: function (event){  
              modifyLocation (nodes, id, event.pos[0], event.pos[1])
           }
         });//sets the grid drag params  
@@ -101,20 +99,44 @@ function addConnection (elem){
   jsPlumb.bind("click", function (conn, originalEvent) {
            if (confirm("Delete connection from " + conn.sourceId + " to " + conn.targetId + "?"))
             jsPlumb.deleteConnection(conn);
-            console.log(elem.source.id)
-            console.log(elem.target.id)
             jsPlumb.repaintEverything()
+           console.log(newData = removeSingleConnection(conn.sourceId, conn.targetId, connections))
+
+    let newNodes =  JSON.stringify(nodes)
+    let newConnections = JSON.stringify(newData)
+    let newValue = '{"points":' + newNodes+ ',"connections":' + newConnections +'}' 
+      document.getElementById('json-data').value = newValue //writes it to the json-data div
 
         });
 
 //ADD CONNECTION JSON 
-jsPlumb.bind("connection", function(elem) { 
+// jsPlumb.bind("connection", function(elem) { 
+//     console.log(connections)
+//     console.log(connections.length)
+//     let newNodes =  JSON.stringify(nodes) 
+//     //connections = checkConnectDuplicates(elem.source.id, elem.target.id, connections)  
+
+//     connections.push({"source": elem.source.id,"target": elem.target.id})    
+//     let newConnections = JSON.stringify(connections)
+//     let newValue = '{"points":' + newNodes+ ',"connections":' + newConnections +'}' 
+//     document.getElementById('json-data').value = newValue //writes it to the json-data div
+// });
+
+//ADD CONNECTION JSON 
+jsPlumb.bind('connectionDragStop', function (elem) {
+  if (elem.target != null) {
+    console.log(connections)
+    console.log(connections.length)
     let newNodes =  JSON.stringify(nodes) 
-    connections = checkConnectDuplicates(elem.source.id, elem.target.id, connections)   
+    //connections = checkConnectDuplicates(elem.source.id, elem.target.id, connections)  
+
+    connections.push({"source": elem.source.id,"target": elem.target.id})    
     let newConnections = JSON.stringify(connections)
     let newValue = '{"points":' + newNodes+ ',"connections":' + newConnections +'}' 
     document.getElementById('json-data').value = newValue //writes it to the json-data div
-});
+  }
+})
+
  
   //DELETE ITEM
   jsPlumb.on(document,"click", ".kill", function(){
@@ -128,20 +150,24 @@ jsPlumb.bind("connection", function(elem) {
       }) 
 
     let newNodes =  JSON.stringify(newData)
-    let newConnections = JSON.stringify(connections)
+    let newConnections = JSON.stringify(removeAnyConnection(node,connections))
     let newValue = '{"points":' + newNodes+ ',"connections":' + newConnections +'}' 
       document.getElementById('json-data').value = newValue //writes it to the json-data div
   });
 
    //EDIT ITEM
   jsPlumb.on(document,"click", ".edit", function(){
-    let exist = jQuery(this).siblings('.description').html()
-    if (!exist){
-      exist = ''
+    if(jQuery(this).siblings('.description').html()){
+      console.log(jQuery(this).siblings('.description').html())
+      var exist = jQuery(this).siblings('.description').html()
+    } else {
+      var exist = ''
     }
     //jQuery('#bodyText').val(exist) +++++++++++
-    tinyMCE.activeEditor.setContent(exist);
-    tinyMCE.activeEditor.getContent({format : 'raw'});
+    if(typeof(tinyMCE) != "undefined"){
+      tinyMCE.activeEditor.setContent(exist);
+      tinyMCE.activeEditor.getContent({format : 'raw'});
+    } 
     jQuery('.editOverlay').css('height','100%')
     document.getElementById('bodyText').dataset.node = jQuery(this).parent()[0].id
     jsPlumb.repaintEverything()
@@ -183,12 +209,23 @@ function modifyLocation (nodes, node, x, y){
       if (node == elem.id){        
         elem.positionX = x
         elem.positionY = y
+        expandContainer(x)
       }
     let newNodes =  JSON.stringify(nodes)
     let newConnections = JSON.stringify(connections)
     let newValue = '{"points":' + newNodes+ ',"connections":' + newConnections +'}' 
       document.getElementById('json-data').value = newValue //writes it to the json-data div
     })
+}
+
+
+//make sure container is big enough 
+function expandContainer(x){
+  let screenX = screen.width
+  x = 300+x
+  if (x > screenX && document.getElementById('diagramContainer')) {
+    document.getElementById('diagramContainer').style.width = x+'px'
+  }
 }
 
 //modify description text on edit
@@ -205,7 +242,6 @@ function modifyTextJson(nodes, node, desc){
 }
 
 
-
 function discardButton(){
       jQuery('.editOverlay').css('height','0')
       //jQuery('#bodyText').val('')
@@ -219,9 +255,11 @@ document.getElementById("discardButton").addEventListener("click", function(){
 
 document.getElementById("submitContent").addEventListener("click", function(){
   //let words = jQuery('#bodyText').val()
-  let words = tinyMCE.activeEditor.getContent({format : 'raw'});
-  let node = document.getElementById('bodyText').getAttribute('data-node')
-  document.getElementById(node).getElementsByClassName('description')[0].innerHTML = words
+  if(tinyMCE){
+    let words = tinyMCE.activeEditor.getContent({format : 'raw'});
+    let node = document.getElementById('bodyText').getAttribute('data-node')
+    document.getElementById(node).getElementsByClassName('description')[0].innerHTML = words
+  }
   modifyTextJson(nodes, node, words)
   jQuery('.editOverlay').css('height','0')
        jsPlumb.repaintEverything()
@@ -241,6 +279,17 @@ function saveItems(){
 }
 
 
+jQuery(document).ready(function(jQuery) {
+    jQuery('button#save').click(function saveItems(){
+       var postID = document.getElementById('jsplumb-id').innerHTML
+       var jsonData = jQuery('#json-data').val()
+        var data = { action: 'update_jsplumb', postID: postID, jsonData: jsonData }
+
+        jQuery.post(ajaxurl, data, function(response) {
+            //alert('Got this from the server: ' + response);  // Uncomment to use for testing
+        });
+    });
+});
 //+++++++++++++++++++++++++tinyMCE.activeEditor.getContent({format : 'raw'});
 
 //WRITE SOMETHING TO COMPARE OLD VS NEW JSON
@@ -253,13 +302,59 @@ function saveItems(){
 
 
 
-function checkConnectDuplicates(newSource, newTarget, connections){
-  for (var key in connections){
-      if (connections[key].source != newSource && connections[key].target != newTarget) {
-        connections.push({"source": newSource,"target": newTarget})   
-        return connections
-    } 
+function checkConnectDuplicates(newSource, newTarget, connections){ 
+ var cleanConnections = []
+ if (connections.length > 0){
+    for (var key in connections){
+        if (connections[key].source == newSource && connections[key].target == newTarget) {
+         console.log('match ' + newSource + ' ' + newTarget)
+      } else {
+         cleanConnections.push({"source": newSource,"target": newTarget})   
+      }
+    }
+  }  if (connections.length === 0) {
+      cleanConnections.push({"source": newSource,"target": newTarget})   
   }
-  return connections
+
+  return cleanConnections
 }
 
+function removeDuplicateUsingFilter(arr){
+    let unique_array = arr.filter(function(elem, index, self) {
+        return index == self.indexOf(elem);
+    });
+    return unique_array
+}
+
+
+
+//CLEAN FUNCTIONS
+
+function removeSingleConnection(source, target, connections){
+    for(var i = 0; i < connections.length; i++)
+    {
+        if(connections[i].source == source && connections[i].target == target) {
+            connections.splice( i, 1 ) 
+            console.log(connections)
+            return connections //goal is to remove only one 
+        }
+    }
+}
+
+
+function removeAnyConnection(id, connections){  
+    for(var i = 0; i < connections.length; i++)
+    {
+        if(connections[i].source == id || connections[i].target == id) {
+            connections.splice( i, 1 ) 
+            console.log(connections)           
+        }
+    }
+    return connections //goal is to remove only one 
+}
+
+function removeMasthead(){
+  if (document.getElementById('masthead')){
+    document.getElementById('masthead').style.display = 'none';
+  }
+}
