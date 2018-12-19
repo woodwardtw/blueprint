@@ -164,3 +164,5 @@ function load_blueprint_template($template) {
 }
 
 add_filter('single_template', 'load_blueprint_template');
+
+add_filter( 'wp_default_editor', create_function('', 'return "tinymce";')); //force wysiwyg editor

@@ -31,9 +31,13 @@ get_header(); ?>
     <div id="textEditor">
         <!-- <textarea type="text" id="bodyText"></textarea><br>    -->
         <?php 
-        if ( is_user_logged_in() ) {
+        if ( is_user_logged_in() && current_user_can( 'edit_post', $postID ) ) {
 		            wp_editor('', 'bodyText'); 
-		} else {
+		} else if (!current_user_can( 'edit_post', $postID )) {
+			echo '<h2>This content is owned by another author.</h2>';
+		}
+
+		else {
 			echo '<h2>Please log in</h2>';
 		    wp_login_form();
 		}
