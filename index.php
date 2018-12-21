@@ -3,7 +3,7 @@
  * Plugin Name: Blueprint
  * Plugin URI: 
  * Description: For making business blueprint graphic organizers
- * Version: .007	
+ * Version: .007    
  * Author: Tom Woodward
  * Author URI: http://bionicteaching.com
  * License: GPL2
@@ -13,7 +13,10 @@ defined( 'ABSPATH' ) or die( 'No script kiddies please!' );
 
 function blueprint_enqueue_scripts() {
     wp_register_style( 'blueprint-styles', plugins_url( '/css/blueprint.css', __FILE__ )  ); 
-    wp_enqueue_style('blueprint-styles');
+    global $post_type;
+    if( 'blueprint' == $post_type ){
+     wp_enqueue_style('blueprint-styles');
+    }
 }
 add_action( 'wp_enqueue_scripts', 'blueprint_enqueue_scripts' );
 
@@ -21,9 +24,12 @@ add_action( 'wp_enqueue_scripts', 'blueprint_enqueue_scripts' );
 if(!function_exists('load_jsplumb')){
     function load_jsplumb() {
         global $post;
-        $version= '1.0'; 
-        $in_footer = true;
-        wp_enqueue_script('jsplumb', '//cdnjs.cloudflare.com/ajax/libs/jsPlumb/2.8.4/js/jsplumb.min.js', array('jquery'), $version, $in_footer);
+          global $post_type;
+        if( 'blueprint' == $post_type ){
+            $version= '1.0'; 
+            $in_footer = true;
+            wp_enqueue_script('jsplumb', '//cdnjs.cloudflare.com/ajax/libs/jsPlumb/2.8.4/js/jsplumb.min.js', array('jquery'), $version, $in_footer);
+        }
         
     }
 }
@@ -40,15 +46,15 @@ add_action('wp_enqueue_scripts', 'load_blueprint');
 
 
 function addJsonContent(){
-	global $post;
-	$id = $post->ID;
-	$json = get_post_meta($id, 'json-data');
-	if ($json){
-		$div = '<textarea id="json-data">' . $json[0] . '</textarea>';
-	} else {
-		$div = '<textarea id="json-data"></textarea>';
-	}	
-	return  $div;
+    global $post;
+    $id = $post->ID;
+    $json = get_post_meta($id, 'json-data');
+    if ($json){
+        $div = '<textarea id="json-data">' . $json[0] . '</textarea>';
+    } else {
+        $div = '<textarea id="json-data"></textarea>';
+    }   
+    return  $div;
 }
 
 add_filter('the_content', 'addJsonContent') ; 
@@ -56,7 +62,7 @@ add_filter('the_content', 'addJsonContent') ;
 
 //shortcode for HTML display
 function jsPlumb_display( $atts ){
-	return include( 'jsplumb-display.php' );
+    return include( 'jsplumb-display.php' );
 }
 add_shortcode( 'blueprint', 'jsPlumb_display' );
 
@@ -69,9 +75,9 @@ function update_jsplumb_data_callback() {
     // find the json data
     $data = intval($custom['json-data'][0]);
   
-    if($data > 0) {
+    if($data > 0 && current_user_can( 'edit_post', $postID )) {
         update_post_meta($postID, 'json-data', $jsonData);
-    } else {
+    } else if (current_user_can( 'edit_post', $postID )){
         add_post_meta($postID, 'json-data', $jsonData, true);
     }
     update_post_meta($postID, 'json-data', $jsonData );    
@@ -165,4 +171,5 @@ function load_blueprint_template($template) {
 
 add_filter('single_template', 'load_blueprint_template');
 
-add_filter( 'wp_default_editor', create_function('', 'return "tinymce";')); //force wysiwyg editor
+
+add_filter( 'wp_default_editor', create_function('', 'return "tinymce";'));
