@@ -44,6 +44,22 @@ add_action('wp_enqueue_scripts', 'load_jsplumb');
     }
 add_action('wp_enqueue_scripts', 'load_blueprint');
 
+//     function load_html2canvas() {
+//         $dep = array('blueprint-scripts');
+//         $version = '2.4.1'; 
+//         $in_footer = true;        
+//         wp_enqueue_script( 'html2canvas', 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js', $dep, $version, $in_footer );
+//     }
+// add_action('wp_enqueue_scripts', 'load_html2canvas');
+
+//  function load_canvg() {
+//         $dep = array('jquery');
+//         $version = '1.5'; 
+//         $in_footer = true;        
+//         wp_enqueue_script( 'canvg', 'https://cdnjs.cloudflare.com/ajax/libs/canvg/1.5/canvg.min.js', $dep, $version, $in_footer );
+//     }
+// add_action('wp_enqueue_scripts', 'load_canvg');
+
 
 function addJsonContent(){
     global $post;
@@ -56,7 +72,6 @@ function addJsonContent(){
     }   
     return  $div;
 }
-
 add_filter('the_content', 'addJsonContent') ; 
 
 
@@ -173,3 +188,14 @@ add_filter('single_template', 'load_blueprint_template');
 
 
 add_filter( 'wp_default_editor', create_function('', 'return "tinymce";'));
+
+
+//Gravity form redirect to created blueprint post
+//takes submitter to the post create on submissions that create posts
+add_action('gform_after_submission_2', 'alt_gform_redirect_on_post', 10, 2);
+function alt_gform_redirect_on_post($entry, $form) {
+    $post_id = $entry['post_id'];
+    $url = get_site_url() . "/?p=" . $post_id;
+    wp_redirect($url);
+    exit;
+}
