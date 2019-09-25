@@ -69,6 +69,7 @@ function addNode(id, text) {
        jsPlumb.draggable(jQuery(".item"), {
           grid: [10,10],
           containment:false,
+        
           drag: function (event){  
              modifyLocation (nodes, id, event.pos[0], event.pos[1])
           }
@@ -182,13 +183,14 @@ jsPlumb.bind('connectionDragStop', function (elem) {
     jsPlumb.repaintEverything()
   });
 
+
   //MAKE ITEM
   jsPlumb.addEndpoint(
     jQuery(".item"),
     common
   );
   jsPlumb.on(document, "click", "#make", function() {
-    var item = '<div class="item" id="node'+i+'"><div class="kill"></div><div class="edit" alt-text="edit"><i class="fa fa-pencil" aria-hidden="true"></i></div><div class="description"></div></div>';
+    var item = '<div class="item resizeable" id="node'+i+'"><div class="kill"></div><div class="edit" alt-text="edit"><i class="fa fa-pencil" aria-hidden="true"></i></div><div class="description"></div></div>';
     jQuery('#diagramContainer').prepend(item);
     nodes.push({"id": "node"+i,"positionX": 50,"positionY": 50,"text":""});
     let newNodes =  JSON.stringify(nodes)
@@ -293,7 +295,7 @@ jQuery(document).ready(function(jQuery) {
         var data = { action: 'update_jsplumb', postID: postID, jsonData: jsonData }
 
         jQuery.post(ajaxurl, data, function(response) {
-            //alert('Got this from the server: ' + response);  // Uncomment to use for testing
+            alert('Your post has been saved.');  // Uncomment to use for testing
         });
     });
 });
@@ -385,4 +387,5 @@ function removeMasthead(){
  //    });
  //  });
 
+ 
  
