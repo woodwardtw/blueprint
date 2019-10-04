@@ -14,8 +14,12 @@ get_header(); ?>
 </div>
 <div id="the-blueprint">  
   <div class="top-menu">
-    <button id="make">new item</button>
-    <button id="save">save</button>
+    <?php if ( is_user_logged_in() && current_user_can( 'edit_post', get_the_id() ) ) {
+    echo '<button id="make">new item</button>';
+    echo '<button id="save">save</button>';
+  } else {
+    echo 'You are in view only mode. No changes will be saved.';
+  }?>
   </div>
 
   <div id="diagramContainer">
@@ -53,7 +57,7 @@ get_header(); ?>
 </div>
 
 <div id="jsplumb-id"><?php echo the_ID();?></div>
-<?php echo addJsonContent();?>
+<?php echo addJsonContent('');?>
 
 <?php get_sidebar(); ?>
 <?php get_footer(); ?>
