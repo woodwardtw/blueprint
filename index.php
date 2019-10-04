@@ -61,16 +61,21 @@ add_action('wp_enqueue_scripts', 'load_blueprint');
 // add_action('wp_enqueue_scripts', 'load_canvg');
 
 
-function addJsonContent(){
+function addJsonContent($content){
     global $post;
     $id = $post->ID;
     $json = get_post_meta($id, 'json-data');
-    if ($json){
-        $div = '<textarea id="json-data">' . $json[0] . '</textarea>';
-    } else {
-        $div = '<textarea id="json-data"></textarea>';
-    }   
-    return  $div;
+    if (get_post_type() === 'blueprint'){
+        if ($json){
+            $div = '<textarea id="json-data">' . $json[0] . '</textarea>';
+        } else {
+            $div = '<textarea id="json-data"></textarea>';
+        }   
+        return  $div;
+    }
+    else {
+        return $content;
+    }
 }
 add_filter('the_content', 'addJsonContent') ; 
 
